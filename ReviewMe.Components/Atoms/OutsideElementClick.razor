@@ -1,0 +1,31 @@
+﻿@inject IJSRuntime _jsRuntime
+
+<div id="@_id">
+    @ChildContent
+</div>
+
+@code{
+
+    [Parameter]
+    [EditorRequired]
+    public EventCallback OnOutsideClick { get; set; } = default!;
+
+    [Parameter]
+    [EditorRequired]
+    public RenderFragment? ChildContent { get; set; } = default!;
+
+    private string _id = Guid.NewGuid().ToString();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await _jsRuntime.InvokeVoidAsync("reviewme_OutsideElementClick", _id, DotNetObjectReference.Create(this));
+    }
+
+    [JSInvokable]
+    public void InvokeOutsideElementClick()
+    {
+        if (OnOutsideClick.HasDelegate)
+            OnOutsideClick.InvokeAsync();
+    }
+}

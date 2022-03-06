@@ -1,0 +1,63 @@
+﻿@implements IDisposable
+
+<dialog open
+        class="reviewme-w-full reviewme-fixed reviewme-z-50 reviewme-inset-0 reviewme-overflow-y-auto reviewme-flex reviewme-justify-center reviewme-items-center reviewme-h-full reviewme-p-4 reviewme-pb-20 reviewme-bg-transparent"
+        aria-labelledby="modal-title"
+        aria-modal="true">
+    <div class="reviewme-w-full reviewme-h-full reviewme-absolute reviewme-inset-0 reviewme-z-10 reviewme-bg-gray-500 reviewme-bg-opacity-75" @onclick="OnCancel"></div>
+    <div class="reviewme-max-w-xl reviewme-min-w-[33%] reviewme-bg-white reviewme-rounded-lg reviewme-text-left reviewme-overflow-hidden reviewme-shadow-xl reviewme-z-20">
+        <header class="reviewme-flex reviewme-flex-col reviewme-bg-white reviewme-px-8 reviewme-pt-8 reviewme-pb-4">
+            <button onclick="@OnCancel" class="fas fa-times fa-lg reviewme-ml-auto reviewme-rounded-full"></button>
+            <div class="reviewme-mt-8 reviewme-text-left">
+                <h3 class="reviewme-text-lg reviewme-leading-6 reviewme-font-semibold reviewme-text-gray-900" id="modal-title">@ModalTitle</h3>
+            </div>
+        </header>
+
+        <section class="reviewme-px-8 reviewme-py-4">
+            @ModalBody
+        </section>
+
+        <section class="reviewme-bg-gray-50 reviewme-px-8 reviewme-py-4 reviewme-flex reviewme-justify-end reviewme-space-x-8">
+            <Button OnClick="OnCancel" Variant="ButtonVariant.WhiteOutline" Size="ButtonSize.Regular">@CancelButtonText</Button>
+            <Button OnClick="OnConfirm" Variant="ButtonVariant.PinkSolid" Size="ButtonSize.Regular">@ConfirmButtonText</Button>
+        </section>
+    </div>
+</dialog>
+
+@code {
+
+    [Parameter]
+    [EditorRequired]
+    public RenderFragment ModalTitle { get; set; } = default!;
+
+    [Parameter]
+    public RenderFragment ModalBody { get; set; } = default!;
+
+    [Parameter]
+    [EditorRequired]
+    public EventCallback OnCancel { get; set; } = default!;
+
+    [Parameter]
+    [EditorRequired]
+    public EventCallback OnConfirm { get; set; } = default!;
+
+    [Parameter]
+    public string CancelButtonText { get; set; } = "Cancel";
+
+    [Parameter]
+    public string ConfirmButtonText { get; set; } = "Confirm";
+
+    [Inject]
+    public IJSRuntime JsRuntime { get; set; } = default!;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await JsRuntime.InvokeVoidAsync("toggleClassFromBody", "reviewme-overflow-hidden", true);
+    }
+
+    public void Dispose()
+    {
+        JsRuntime.InvokeVoidAsync("toggleClassFromBody", "reviewme-overflow-hidden", false);
+    }
+}

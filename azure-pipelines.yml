@@ -1,0 +1,36 @@
+# ASP.NET Core
+# Build and test ASP.NET Core projects targeting .NET Core.
+# Add steps that run tests, create a NuGet package, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
+
+trigger:
+- master
+
+pool: 'Default'
+
+variables:
+  buildConfiguration: 'Release'
+  
+steps:
+- script: dotnet clean
+  displayName: 'dotnet clean'
+
+- task: NodeTool@0
+  inputs:
+    versionSpec: '15.9.x'
+  displayName: 'Install Node.js'
+
+- script: npm install
+  workingDirectory: ReviewMe.Frontend
+  displayName: 'npm install'
+
+- script: dotnet publish -o $(Build.ArtifactStagingDirectory)
+  workingDirectory: ReviewMe.Frontend
+  displayName: 'dotnet publish'
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Artifact: drop'
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'drop'
+    publishLocation: 'Container'

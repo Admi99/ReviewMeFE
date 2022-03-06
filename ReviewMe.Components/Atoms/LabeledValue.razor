@@ -1,0 +1,22 @@
+﻿<div class="reviewme-flex reviewme-items-center">
+    <i class="fas @Icon reviewme-text-xl reviewme-text-gray-600"></i>
+    <div class="reviewme-ml-4">
+        <div class="reviewme-text-gray-600 reviewme-text-lg">@Title</div>
+        <div>@Value</div>
+    </div>
+</div>
+
+@code {
+
+    [Parameter]
+    [EditorRequired]
+    public string Icon { get; set; } = string.Empty!;
+
+    [Parameter]
+    [EditorRequired]
+    public string Title { get; set; } = string.Empty!;
+
+    [Parameter]
+    [EditorRequired]
+    public string Value { get; set; } = string.Empty!;
+}

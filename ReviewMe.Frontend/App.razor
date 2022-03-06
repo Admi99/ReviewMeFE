@@ -1,0 +1,67 @@
+@using Microsoft.Extensions.Configuration;
+@implements IAsyncDisposable
+
+@if (IsLoading)
+{
+    <p>Loading ReviewMe application.</p>
+}
+else if (IsError)
+{
+    <p>Loading ReviewMe application failed!</p>
+    <p>@ErrorMessage</p>
+}
+else
+{
+    <Router AppAssembly="@typeof(Program).Assembly" OnNavigateAsync="(context => Console.WriteLine(context.Path))" PreferExactMatches="@true">
+        <Found Context="routeData">
+            <RouteView RouteData="@routeData" />
+        </Found>
+        <NotFound>
+            <p>Sorry, there's nothing at this address .</p>
+        </NotFound>
+    </Router>
+}
+
+@code
+{
+    [Inject]
+    protected IConfiguration Options { get; set; } = default!;
+
+    [Inject]
+    protected IJSRuntime Js { get; set; } = default!;
+
+    private IJSObjectReference? Module { get; set; }
+
+    private bool IsLoading { get; set; } = true;
+    private bool IsError { get; set; }
+
+    private string? ErrorMessage { get; set; } 
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            Module = await Js.InvokeAsync<IJSObjectReference>("import", Options["jsUrl"]);
+
+            foreach (var url in Options.GetSection("CSSUrls").GetChildren().Select(x => x.Value))
+                await Module.InvokeVoidAsync("AppendStyleSheet", url);
+        }
+        catch (Exception e)
+        {
+#if DEBUG
+            ErrorMessage = e.ToString();
+#endif
+            IsError = true;
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (Module is not null)
+            await Module.DisposeAsync();
+    }
+}

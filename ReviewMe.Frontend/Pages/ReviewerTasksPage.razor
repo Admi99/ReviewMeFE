@@ -1,0 +1,61 @@
+﻿@page "/reviews"
+@using ReviewMe.Models.Enums
+@using ReviewMe.Models.ReviewerTasks
+@using ReviewMe.Components.Extensions
+
+<ReviewerTasksTemplate ReviewerTasksTask=ReviewerTasksTask
+                       ReviewerTaskToDecline=ReviewerTaskToDecline
+                       IsDeclineModalVisible=IsDeclineModalVisible
+                       OnDeclineButtonClick=OnDeclineButtonClick
+                       OnDeclineModalCancel=OnDeclineModalCancel
+                       OnDeclineModalConfirm=OnDeclineModalConfirm />
+
+@code {
+
+    [Inject]
+    IReviewerTaskService ReviewerTaskService { get; set; } = default!;
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "declineAssessmentId")]
+    public int? DeclineAssessmentIdParameter { get; set; }
+
+    private Task<List<ReviewerTask>> ReviewerTasksTask { get; set; } = default!;
+
+    private ReviewerTask? ReviewerTaskToDecline { get; set; }
+
+    private bool IsDeclineModalVisible { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        ReviewerTaskToDecline = (await ReviewerTasksTask).FirstOrDefault(reviewerTask => DeclineAssessmentIdParameter == reviewerTask.AssessmentId);
+
+        IsDeclineModalVisible = DeclineAssessmentIdParameter != null;
+    }
+
+    protected override void OnInitialized()
+    {
+        ReviewerTasksTask = ReviewerTaskService.Get();
+    }
+
+    private void OnDeclineButtonClick(ReviewerTask reviewerTask)
+    {
+        IsDeclineModalVisible = true;
+        ReviewerTaskToDecline = reviewerTask;
+    }
+
+    private void OnDeclineModalCancel()
+    {
+        IsDeclineModalVisible = false;
+        ReviewerTaskToDecline = null;
+    }
+
+    private async Task OnDeclineModalConfirm(string reason)
+    {
+        IsDeclineModalVisible = false;
+        if (ReviewerTaskToDecline != null)
+        {
+            await ReviewerTaskService.Decline(ReviewerTaskToDecline.AssessmentId, reason);
+            ReviewerTasksTask = ReviewerTaskService.Get();
+        }
+    }
+}

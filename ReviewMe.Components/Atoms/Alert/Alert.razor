@@ -1,0 +1,20 @@
+﻿<p class="@Utilities.ClassNames("reviewme-flex reviewme-p-3 reviewme-items-start",
+              Variant == AlertVariant.Info ? "reviewme-bg-info reviewme-text-blue-500" : "",
+              Variant == AlertVariant.Error ? "reviewme-bg-red-500 reviewme-text-white" : "")"
+   role="alert">
+    <span class="@Utilities.ClassNames("fas reviewme-mr-2 reviewme-mt-1", 
+                     Variant == AlertVariant.Info ? "fa-exclamation-circle ": "",
+                     Variant == AlertVariant.Error ? "fa-exclamation-circle" : "")"></span>
+    <span>
+        @ChildContent
+    </span>
+</p>
+
+@code {
+    [Parameter]
+    [EditorRequired]
+    public AlertVariant Variant { get; set; }
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; } = default!;
+}

@@ -1,0 +1,350 @@
+﻿@using ReviewMe.Models.Employees
+@using ReviewMe.Models.Enums
+@using ReviewMe.Models.Reviewers
+
+<Page Title="@Title" ShowNavigation="false">
+    <section class="reviewme-flex reviewme-justify-between reviewme-py-2">
+        <ButtonLink Link="/reviews/employees" Variant="ButtonVariant.BlueOutline" Size="ButtonSize.Regular">
+            <i class="fas fa-arrow-left"></i>
+            Go back to list
+        </ButtonLink>
+        <TaskContext Task="EmployeeTask" Context="employee" ShowContext="false">
+            @if (employee.HasOpenAssessment)
+            {
+                <Button OnClick="DeleteAssessment" Variant="ButtonVariant.BlueOutline" Size="ButtonSize.Regular">
+                    Delete
+                </Button>
+            }
+        </TaskContext>
+    </section>
+
+    <section class="reviewme-pt-2 reviewme-pt-2 reviewme-pb-8">
+        <TaskContext Task="EmployeeTask" Context="employee">
+            <div class="reviewme-grid reviewme-grid-cols-2 2xl:reviewme-grid-cols-3 reviewme-gap-10">
+
+                <EmployeeCard TeamLeader="@employee.TeamLeaderName"
+                              Department="@employee.Department"
+                              ImageSrc="@employee.ImageSrc"
+                              Position="@employee.Position"
+                              SurnameFirstName="@employee.SurnameFirstName" />
+
+                <section class="reviewme-space-y-4">
+                    <SectionHeader>Dates</SectionHeader>
+
+                    <div class="reviewme-space-y-2">
+                        <Field Label="Assessment due date"
+                               Name="AssesmentDueDate"
+                               IsLabelBold="true"
+                               IsRequired="true"
+                               IsValid="IsAssessmentDueDateValid"
+                               IsTouched="IsAssessmentDueDateTouched"
+                               ValidationMessage="Please fill in the date">
+                            <FieldInput Context="name">
+                                <DatePicker Name="@name"
+                                            Value="employee.AssessmentDueDate"
+                                            OnChange="ChangeAssessmentDueDate"
+                                            MinValue="DateTimeOffset.Now"
+                                            CanSelectWeekend="false" />
+                            </FieldInput>
+                        </Field>
+                        <Field Label="Performance reviews date"
+                               Name="PerformanceReviewDate"
+                               IsLabelBold="true"
+                               IsRequired="true"
+                               IsValid="IsPerformanceReviewDateValid"
+                               IsTouched="IsPerformanceReviewDateTouched"
+                               ValidationMessage="Please fill in the date">
+                            <FieldInput Context="name">
+                                <DatePicker Name="@name"
+                                            Value="employee.PerformanceReviewDate"
+                                            OnChange="ChangePerformanceReviewDate"
+                                            MinValue="employee.AssessmentDueDate"
+                                            CanSelectWeekend="false" />
+                            </FieldInput>
+                        </Field>
+                    </div>
+                    <Alert Variant="AlertVariant.Info">
+                        @employee.SurnameFirstName's month of performance review should be:
+                        <span class="reviewme-font-bold reviewme-inline-flex">
+                            @employee.PerformanceReviewMonth.ToString("MMMM", CultureInfo.GetCultureInfo("en-GB"))
+                        </span>
+                    </Alert>
+                </section>
+            </div>
+        </TaskContext>
+    </section>
+
+    <section class="reviewme-pt-8">
+        <div class="reviewme-grid reviewme-grid-cols-2 2xl:reviewme-grid-cols-3 reviewme-gap-10">
+            <div class="reviewme-col-span-2">
+                <SectionHeader>Reviewers</SectionHeader>
+                <TaskContext Task="ReviewersTask" Context="groups" ErrorMessage="Failed to load reviewers">
+                    @foreach (var (title, reviewers) in groups)
+                    {
+                        <Accordion>
+                            <AccordionPreHeader>
+                                <div class="reviewme-flex reviewme-items-center reviewme-justify-center reviewme-p-4">
+                                    <input type="checkbox"
+                                       class="reviewme-h-4 reviewme-w-4 reviewme-m-0 m-0 reviewme-accent-blue-500"
+                                       checked="@reviewers.All(reviewer => reviewer.IsSelected)"
+                                       @onclick="() => SelectReviewers(reviewers)" />
+                                </div>
+                            </AccordionPreHeader>
+                            <AccordionHeader Context="isExpanded">
+                                <span class="reviewme-text-2xl reviewme-font-bold">@title</span>
+                                @if (!isExpanded)
+                                {
+                                    <span class="reviewme-pl-2">(@reviewers.Count(x => x.IsSelected) selected reviewers)</span>
+                                }
+                            </AccordionHeader>
+                            <AccordionBody>
+                                @foreach (var reviewer in reviewers)
+                                {
+                                    <label for="checkbox-@title-@reviewer.Name" class="reviewme-flex reviewme-items-center reviewme-border-b reviewme-px-4 reviewme-py-2 reviewme-gap-4 reviewme-cursor-pointer hover:reviewme-bg-gray-100 reviewme-transition mb-0">
+                                        <input type="checkbox"
+                                       id="checkbox-@title-@reviewer.Name"
+                                       name="checkbox-@title-@reviewer.Name"
+                                       class="reviewme-h-4 reviewme-w-4 reviewme-m-0 m-0 reviewme-accent-blue-500"
+                                       checked="@reviewer.IsSelected"
+                                       @onclick="() => SelectReviewer(reviewer)" />
+                                        <span class="reviewme-text-black">
+                                            @reviewer.Name
+                                        </span>
+                                        @if (reviewer.IsProjectManager)
+                                        {
+                                            <div class="reviewme-rounded reviewme-bg-red-500 reviewme-text-xs reviewme-text-white">
+                                                <div class="reviewme-py-1 reviewme-px-2 reviewme-font-bold">
+                                                    <i class="fas fa-star"></i>
+                                                    Project Manager
+                                                </div>
+                                            </div>
+                                        }
+                                    </label>
+                                }
+                            </AccordionBody>
+                        </Accordion>
+                    }
+                </TaskContext>
+            </div>
+        </div>
+    </section>
+
+    <TaskContext Task="EmployeeTask" Context="employee" ShowContext="false">
+        <section class="reviewme-fixed reviewme-right-8 reviewme-bottom-8 reviewme-max-w-sm reviewme-shadow reviewme-rounded-2xl reviewme-bg-white reviewme-overflow-hidden">
+            <div class="reviewme-bg-blue-500 reviewme-p-5">
+                <p class="reviewme-text-white reviewme-py-2">Newly added reviews will be notified after @(employee.HasOpenAssessment ? "updating" : "opening") assessment.</p>
+            </div>
+            <div class="reviewme-p-5 reviewme-space-y-5">
+                <LabeledValue Icon="fa-calendar-alt" Title="Assesment due date" Value="@(employee.AssessmentDueDate == default ? "Not filled" : employee.AssessmentDueDate.ToString("d"))" />
+                <LabeledValue Icon="fa-users" Title="Newly added reviewers" Value="@NewlyAddedReviewersCount.ToString()" />
+                <div class="reviewme-flex reviewme-flex-col reviewme-justify-center reviewme-items-center reviewme-gap-2">
+                    @if (employee.HasOpenAssessment is false)
+                    {
+                        <Button OnClick="OpenAssessment" Variant="ButtonVariant.PinkSolid" Size="ButtonSize.Regular">
+                            Open assessment
+                        </Button>
+                    }
+                    else
+                    {
+                        <div class="reviewme-flex reviewme-flex-col reviewme-items-stretch reviewme-gap-2">
+                            <Button OnClick="CloseAssessment" Variant="ButtonVariant.PinkSolid" Size="ButtonSize.Regular">
+                                Close assessment
+                            </Button>
+                            <Button OnClick="UpdateAssessment" Variant="ButtonVariant.BlueOutline" Size="ButtonSize.Regular">
+                                Update
+                            </Button>
+                        </div>
+                        <p class="reviewme-text-sm reviewme-text-center">Closing assessment will stop collecting feedbacks</p>
+                    }
+                </div>
+            </div>
+        </section>
+    </TaskContext>
+
+    <ModalOpener IsOpen="IsModalVisible">
+        <Modal OnCancel="OnCancelModal"
+               OnConfirm="() => ModalAction.Invoke()">
+            <ModalTitle>
+                Are you sure you want to @ModalText.ToLower() this assessment?
+            </ModalTitle>
+        </Modal>
+    </ModalOpener>
+</Page>
+
+
+@code {
+
+    [Parameter]
+    [EditorRequired]
+    public Task<Employee> EmployeeTask { get; set; } = default!;
+
+    [Parameter]
+    [EditorRequired]
+    public Task<Dictionary<string, List<Reviewer>>> ReviewersTask { get; set; } = default!;
+
+    [Parameter]
+    [EditorRequired]
+    public Func<(DateTimeOffset assessmentDueDate, DateTimeOffset performanceReviewDate, IReadOnlyCollection<int> reviewers), Task> OnAssessmentOpen { get; set; } = default!;
+
+    [Parameter]
+    [EditorRequired]
+    public Func<(DateTimeOffset assessmentDueDate, DateTimeOffset performanceReviewDate, IReadOnlyCollection<int> reviewers), Task> OnAssessmentUpdate { get; set; } = default!;
+
+    [Parameter]
+    [EditorRequired]
+    public Func<Task> OnAssessmentClose { get; set; } = default!;
+
+    [Parameter]
+    [EditorRequired]
+    public Func<Task> OnAssessmentDelete { get; set; } = default!;
+
+    [Parameter]
+    [EditorRequired]
+    public Task<List<ReviewerFeedback>> ReviewersFeedbackTask { get; set; } = default!;
+
+    [Parameter]
+    [EditorRequired]
+    public Func<string, Task> OnAdditionalFeedbackSave { get; set; } = default!;
+
+    private Employee Employee
+        => EmployeeTask.UseContext(StateHasChanged);
+
+    private List<Reviewer> Reviewers
+        => ReviewersTask
+            .UseContext(StateHasChanged)
+            .SelectMany(group => group.Value)
+            .Where(reviewer => reviewer != null)
+            .ToList();
+
+    private List<ReviewerFeedback> ReviewersFeedback
+        => ReviewersFeedbackTask.UseContext(StateHasChanged);
+
+    public List<(bool IsSelected, int EmployeeId)> OriginalSelectedReviewers { get; set; } = new();
+
+    private bool IsAssessmentDueDateValid => Employee.AssessmentDueDate >= DateTimeOffset.Now.Date;
+
+    private bool IsAssessmentDueDateTouched { get; set; }
+
+    private bool IsModalVisible { get; set; }
+
+    private bool IsPerformanceReviewDateValid => Employee.PerformanceReviewDate >= Employee.AssessmentDueDate;
+
+    private bool IsPerformanceReviewDateTouched { get; set; }
+
+    private string ModalText { get; set; } = string.Empty;
+
+    private Action ModalAction { get; set; } = () => { };
+
+    private string Title => Employee.HasOpenAssessment ? "Edit Assessment" : "Create Assessment";
+
+    private int NewlyAddedReviewersCount => Reviewers
+        .Select(reviewer => (reviewer.IsSelected, reviewer.EmployeeId))
+        .Where(reviewer => reviewer.IsSelected)
+        .Except(OriginalSelectedReviewers)
+        .Count();
+
+
+    protected override async Task OnParametersSetAsync()
+    {
+        OriginalSelectedReviewers = (await ReviewersTask)
+            .SelectMany(group => group.Value)
+            .Select(reviewer => (reviewer.IsSelected, reviewer.EmployeeId))
+            .Where(reviewer => reviewer.IsSelected)
+            .Distinct()
+            .ToList();
+    }
+
+
+    private void ChangePerformanceReviewDate(DateTimeOffset value)
+    {
+        IsPerformanceReviewDateTouched = true;
+        Employee.PerformanceReviewDate = value;
+    }
+
+    private void ChangeAssessmentDueDate(DateTimeOffset value)
+    {
+        IsAssessmentDueDateTouched = true;
+        Employee.AssessmentDueDate = value;
+    }
+
+    private void SelectReviewer(Reviewer reviewerParam)
+    {
+        var value = !reviewerParam.IsSelected;
+        var reviewers = Reviewers
+            .Where(reviewer => reviewer.EmployeeId == reviewerParam.EmployeeId)
+            .ToList();
+
+        reviewers.ForEach(reviewer => reviewer.IsSelected = value);
+    }
+
+    private void SelectReviewers(List<Reviewer> reviewers)
+    {
+        if (reviewers.All(reviewer => reviewer.IsSelected))
+            reviewers.ForEach(reviewerParam =>
+            {
+                Reviewers
+                    .Where(reviewer => reviewer.EmployeeId == reviewerParam.EmployeeId)
+                    .ToList()
+                    .ForEach(reviewer => reviewer.IsSelected = false);
+            });
+        else
+            reviewers.ForEach(reviewerParam =>
+            {
+                Reviewers
+                    .Where(reviewer => reviewer.EmployeeId == reviewerParam.EmployeeId)
+                    .ToList()
+                    .ForEach(reviewer => reviewer.IsSelected = true);
+            });
+    }
+
+    private void OpenAssessment()
+    {
+        IsAssessmentDueDateTouched = true;
+        IsPerformanceReviewDateTouched = true;
+        var selectedReviewers = Reviewers.Where(reviewer => reviewer.IsSelected).Select(reviewer => reviewer.EmployeeId).Distinct().ToList();
+
+        if (IsAssessmentDueDateValid && IsPerformanceReviewDateValid)
+            OnAssessmentOpen((Employee.AssessmentDueDate, Employee.PerformanceReviewDate, selectedReviewers));
+    }
+
+    private void UpdateAssessment()
+    {
+        IsAssessmentDueDateTouched = true;
+        IsPerformanceReviewDateTouched = true;
+        var selectedReviewers = Reviewers.Where(reviewer => reviewer.IsSelected).Select(reviewer => reviewer.EmployeeId).Distinct().ToList();
+
+        if (IsAssessmentDueDateValid && IsPerformanceReviewDateValid)
+            OnAssessmentUpdate((Employee.AssessmentDueDate, Employee.PerformanceReviewDate, selectedReviewers));
+    }
+
+    private void CloseAssessment()
+    {
+        ModalText = "Close";
+        ModalAction = () => OnAssessmentClose.Invoke();
+        IsModalVisible = true;
+    }
+
+    private void DeleteAssessment()
+    {
+        ModalText = "Delete";
+        ModalAction = () => OnAssessmentDelete.Invoke();
+        IsModalVisible = true;
+    }
+
+    private void OnCancelModal()
+    {
+        IsModalVisible = false;
+    }
+
+    private void SaveAdditionalFeedback()
+    {
+        OnAdditionalFeedbackSave(Employee.AdditionalFeedback);
+    }
+
+    private void DeleteAdditionalFeedback()
+    {
+        Employee.AdditionalFeedback = string.Empty;
+        SaveAdditionalFeedback();
+    }
+
+}

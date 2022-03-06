@@ -1,0 +1,51 @@
+﻿<div class="reviewme-flex reviewme-justify-between reviewme-items-center reviewme-p-2 reviewme-gap-1 reviewme-border-b">
+    <div class="reviewme-text-gray-400 reviewme-font-light">
+        <button class="reviewme-p-1 fas fa-angle-double-left" @onclick="OnDoublePreviousClick"></button>
+        @if (IsPreviousClickVisible)
+        {
+            <button class="reviewme-p-1 fas fa-angle-left" @onclick="OnPreviousClick"></button>
+        }
+    </div>
+    <div class="reviewme-text-gray-800 reviewme-space-x-1">
+        @ChildContent
+    </div>
+    <div class="reviewme-text-gray-400 reviewme-font-light">
+        @if (IsNextClickVisible)
+        {
+            <button class="reviewme-p-1 fas fa-angle-right" @onclick="OnNextClick"></button>
+        }
+        <button class="reviewme-p-1 fas fa-angle-double-right" @onclick="OnDoubleNextClick"></button>
+    </div>
+</div>
+
+
+@code {
+
+    [Parameter]
+    [EditorRequired]
+    public EventCallback OnPreviousClick { get; set; } = default!;
+
+    [Parameter]
+    [EditorRequired]
+    public EventCallback OnDoublePreviousClick { get; set; } = default!;
+
+    [Parameter]
+    [EditorRequired]
+    public bool IsPreviousClickVisible { get; set; }
+
+    [Parameter]
+    [EditorRequired]
+    public EventCallback OnNextClick { get; set; } = default!;
+
+    [Parameter]
+    [EditorRequired]
+    public EventCallback OnDoubleNextClick { get; set; } = default!;
+
+    [Parameter]
+    [EditorRequired]
+    public bool IsNextClickVisible { get; set; }
+
+    [Parameter]
+    [EditorRequired]
+    public RenderFragment ChildContent { get; set; } = default!;
+}

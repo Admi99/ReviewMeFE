@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>ReviewMe Standalone</title>
+
+    <base href="/" />
+    <style>
+        #blazor-error-ui {
+            background: lightyellow;
+            bottom: 0;
+            box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
+            display: none;
+            left: 0;
+            padding: 0.6rem 1.25rem 0.7rem 1.25rem;
+            position: fixed;
+            width: 100%;
+            z-index: 1000;
+        }
+
+            #blazor-error-ui .dismiss {
+                cursor: pointer;
+                position: absolute;
+                right: 0.75rem;
+                top: 0.5rem;
+            }
+
+        body {
+            margin: 0;
+        }
+
+        .input, .button {
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .navbar {
+            box-shadow: 0 0 20px #888;
+            background-color: #042a45 !important;
+            display: flex;
+            align-items: center;
+            padding: .5rem 1rem;
+            height: 60px;
+            box-sizing: border-box;
+            position: fixed;
+            left: 0;
+            right: 0;
+            z-index: 10;
+        }
+
+        .sidebar {
+            background-color: #08395e !important;
+            position: fixed;
+            z-index: 10;
+            top: 60px;
+            left: 0;
+            height: calc(100vh - 60px)
+        }
+
+        .sidebar-item {
+            width: 64px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sidebar-item--is-active {
+            background-color: #c10404 !important
+        }
+
+        .sidebar-item svg {
+            width: 28px;
+            color: #fff;
+            max-height: 24px;
+        }
+
+        .main {
+            margin-left: 4rem;
+            padding-top: 70px;
+            padding-bottom: 15px;
+        }
+    </style>
+</head>
+
+<body>
+    <main class="main">
+        <div id="app">Loading...</div>
+    </main>
+
+    <div id="blazor-error-ui">
+        An unhandled error has occurred.
+        <a href="" class="reload">Reload</a>
+        <a class="dismiss">🗙</a>
+    </div>
+    <script>
+        // JWT token mocking
+        var token = '';
+        if (token)
+            localStorage.setItem("jwtToken", token);
+
+        // Notification Handler
+        function NotificationHandler(message, type, timeout) {
+            return alert(`${type}: ${message} (timeout: ${timeout})`);
+        }
+
+        // Loads and stars the blazor app from specified url
+        function loadAndStartBlazorApp(url) {
+            fetch(`${url}/_framework/blazor.webassembly.js`)
+                .then((response) => response.text())
+                .then((scriptContent) => appendScriptElement(scriptContent))
+                .then((_) => startBlazor(url));
+        }
+
+
+        // Adds a script element and sets autostart to false
+        function appendScriptElement(scriptContent) {
+            var scriptElement = document.createElement("script");
+            scriptElement.async = true;
+            scriptElement.crossOrigin = true;
+            scriptElement.setAttribute("autostart", false);
+            scriptElement.text = scriptContent;
+            document.body.appendChild(scriptElement);
+        }
+
+        // Starts the blazor and overrides the url of some of the resources that it will load
+        function startBlazor(url) {
+            window.Blazor.start({
+                loadBootResource: function (type, name, defaultUri, integrity) {
+                    console.log(
+                        `Loading: '${type}', '${name}', '${defaultUri}', '${integrity}'`
+                    );
+                    return defaultUri.indexOf("_framework") !== -1
+                        ? `${url}/_framework/${name}`
+                        : `${url}/${name}`;
+                },
+            })
+                .then(console.log("Blazor app loaded"))
+                .then((_) => {
+                    var ref = window.DotNet.createJSObjectReference({
+                        NotificationHandler,
+                    });
+
+                    window.DotNet.invokeMethod("ReviewMe.Frontend", "AttachHandlers", ref);
+                });
+        }
+
+        // Start app
+        loadAndStartBlazorApp('');
+    </script>
+</body>
+</html>

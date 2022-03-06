@@ -1,0 +1,249 @@
+﻿@using ReviewMe.Models.ReviewerTasks
+@using ReviewMe.Models.Enums
+@using System.Diagnostics
+
+<Page Title="My Tasks">
+    <TaskContext Task="ReviewerTasksTask" Context="reviewerTasks">
+        @{
+            var orderedTasks = reviewerTasks
+                        .OrderByDescending(reviewerTask => reviewerTask.AssessmentDueDate >= DateTimeOffset.Now)
+                        .ThenBy(reviewerTask => reviewerTask.ReviewerTaskState.GetWeightForOrdering())
+                        .ThenBy(reviewerTask => reviewerTask.AssessmentDueDate)
+                        .ToList();
+        }
+
+        <Table Headers="TableHeaders" Items="orderedTasks">
+            <TableRow Context="reviewerTask">
+                <TableCell Class="@GetCellClass(reviewerTask)">
+                    <div class="reviewme-flex reviewme-gap-8 reviewme-items-center">
+                        <div class="reviewme-h-24 reviewme-w-24">
+                            <EmployeeImage Src="@reviewerTask.ImageSrc" />
+                        </div>
+                        <span>@reviewerTask.SurnameFirstName</span>
+                    </div>
+                </TableCell>
+                <TableCell Class="@GetCellClass(reviewerTask)">
+                    <div>@reviewerTask.Department</div>
+                    <div class="reviewme-text-sm reviewme-text-gray-500">@reviewerTask.Position</div>
+                </TableCell>
+                <TableCell Class="@GetCellClass(reviewerTask)">
+                    @reviewerTask.Location
+                </TableCell>
+                <TableCell Class="@GetCellClass(reviewerTask)">
+                    @reviewerTask.AssessmentDueDate.ToString("d")
+                </TableCell>
+                <TableCell>
+                    @if (reviewerTask.ReviewerTaskState == AssessmentReviewerState.Declined)
+                    {
+                        <div class="reviewme-flex reviewme-text-blue-500 reviewme-gap-2 reviewme-justify-center reviewme-items-center">
+                            <i class="fa fa-times" aria-hidden="true"></i>
+                            <span>Declined</span>
+                        </div>
+                    }
+                    else if (reviewerTask.ReviewerTaskState == AssessmentReviewerState.Reviewed)
+                    {
+                        <div class="reviewme-flex reviewme-text-green-400 reviewme-gap-2 reviewme-justify-center reviewme-items-center">
+                            <i class="fa fa-check" aria-hidden="true"></i>
+                            <span>Reviewed</span>
+                        </div>
+                    }
+                    else if (reviewerTask.AssessmentDueDate < DateTimeOffset.Now)
+                    {
+                        <div class="reviewme-flex reviewme-text-red-500 reviewme-gap-2 reviewme-justify-center reviewme-items-center">
+                            <i class="fa fa-hourglass-end " aria-hidden="true"></i>
+                            <span>Missed</span>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="reviewme-grid reviewme-grid-cols-2 reviewme-gap-2">
+                            <ButtonLink Link=@($"/reviews/{reviewerTask.AssessmentId}") Variant="ButtonVariant.BlueOutline" Size="ButtonSize.Small">
+                                Review
+                            </ButtonLink>
+                            <Button OnClick="() => OnDeclineButtonClick.InvokeAsync(reviewerTask)" Variant="ButtonVariant.BlueOutline" Size="ButtonSize.Small">
+                                Decline
+                            </Button>
+                        </div>
+                    }
+                </TableCell>
+            </TableRow>
+        </Table>
+    </TaskContext>
+
+
+    <ModalOpener IsOpen="IsDeclineModalVisible">
+        <Modal OnCancel="OnDeclineModalCancelClick"
+               OnConfirm="OnDeclineModalConfirmClick">
+            <ModalTitle>
+                @if (CanReviewBeDeclined)
+                {
+                    <p class="reviewme-flex reviewme-text-red-500 reviewme-gap-2 reviewme-justify-left reviewme-items-center">
+                        You're about to decline writing feedback for
+                    </p>
+                    <span class="reviewme-underline">@ReviewerTaskToDecline?.SurnameFirstName</span>
+                }
+                else if (ReviewerTaskToDecline?.ReviewerTaskState == AssessmentReviewerState.Declined
+                || ReviewerTaskToDecline?.ReviewerTaskState == AssessmentReviewerState.Reviewed)
+                {
+                    <p class="reviewme-flex reviewme-text-red-500 reviewme-gap-2 reviewme-justify-left reviewme-items-center">
+                        This review is already @ReviewerTaskToDecline.ReviewerTaskState.ToString().ToLower()
+                    </p>
+                }
+                else if (ReviewerTaskToDecline?.AssessmentDueDate < DateTimeOffset.Now)
+                {
+                    <p class="reviewme-flex reviewme-text-red-500 reviewme-gap-2 reviewme-justify-left reviewme-items-center">
+                        Sadly you have missed this review. Due date was @ReviewerTaskToDecline.AssessmentDueDate
+                    </p>
+                }
+                else
+                {
+                    <p class="reviewme-flex reviewme-text-red-500 reviewme-gap-2 reviewme-justify-center reviewme-items-center">
+                        No review to decline was found.
+                    </p>
+                }
+            </ModalTitle>
+            <ModalBody>
+                @if (CanReviewBeDeclined)
+                {
+                    <Field Name="DeclineReason"
+                       Label="Please, choose one of following options"
+                       IsValid="DeclineOptionValid"
+                       IsTouched="DeclineOptionTouched"
+                       ValidationMessage="Must be selected">
+                        <FieldInput Context="name">
+                            <div class="reviewme-pl-4">
+                                <RadioInput Name="@name"
+                                        Value="@DeclineOption"
+                                        OnChange="OnDeclineOptionChange"
+                                        Options="DeclineOptions" />
+                            </div>
+                        </FieldInput>
+                    </Field>
+                    <div class="reviewme-pl-8 reviewme-pt-2">
+                        <Field Name="DeclineReasonOther"
+                           IsValid="DeclineOtherReasonValid"
+                           IsTouched="DeclineOtherReasonTouched"
+                           ValidationMessage="Must be filled">
+                            <FieldInput Context="name">
+                                <TextInput Name="@name"
+                                       Value="@DeclineOtherReason"
+                                       OnChange="OnDeclineOtherReasonChange"
+                                       OnClick="OnOtherReasonClick"
+                                       Placeholder="Please specify reason" />
+                            </FieldInput>
+                        </Field>
+                    </div>
+                }
+            </ModalBody>
+        </Modal>
+    </ModalOpener>
+</Page>
+
+@code {
+    [Parameter]
+    [EditorRequired]
+    public Task<List<ReviewerTask>> ReviewerTasksTask { get; set; } = default!;
+
+    [Parameter]
+    [EditorRequired]
+    public EventCallback<ReviewerTask> OnDeclineButtonClick { get; set; } = default!;
+
+    [Parameter]
+    [EditorRequired]
+    public ReviewerTask? ReviewerTaskToDecline { get; set; }
+
+    [Parameter]
+    [EditorRequired]
+    public bool IsDeclineModalVisible { get; set; }
+
+    [Parameter]
+    [EditorRequired]
+    public EventCallback<string> OnDeclineModalConfirm { get; set; } = default!;
+
+    [Parameter]
+    [EditorRequired]
+    public EventCallback OnDeclineModalCancel { get; set; } = default!;
+
+    private string DeclineOption { get; set; } = string.Empty;
+
+    private bool DeclineOptionTouched { get; set; }
+
+    private bool DeclineOptionValid => string.IsNullOrEmpty(DeclineOption) == false;
+
+    private string DeclineOtherReason { get; set; } = string.Empty;
+
+    private bool DeclineOtherReasonTouched { get; set; }
+
+    private bool DeclineOtherReasonValid => DeclineOption != "Other reason" || string.IsNullOrEmpty(DeclineOtherReason) == false;
+
+    private string DeclineReason
+        => DeclineOption == "Other reason" ? $"{DeclineOption}: {DeclineOtherReason}" : DeclineOption;
+
+    private string[] DeclineOptions
+        => new[] { "I don't know the person", "I don't want to provide a feedback", "I don't work with the person directly", "Other reason" };
+
+    private string[] TableHeaders
+        => new[] { "Person", "Department & Position", "Location", "Assessment due date", " " };
+
+    private bool CanReviewBeDeclined => ReviewerTaskToDecline != null && 
+        ReviewerTaskToDecline?.ReviewerTaskState != AssessmentReviewerState.Declined && 
+        ReviewerTaskToDecline?.ReviewerTaskState != AssessmentReviewerState.Reviewed && 
+        ReviewerTaskToDecline?.AssessmentDueDate >= DateTimeOffset.Now;
+
+    private void OnDeclineOptionChange(string option)
+    {
+        DeclineOption = option;
+        DeclineOptionTouched = true;
+    }
+
+    private void OnDeclineOtherReasonChange(string value)
+    {
+        DeclineOtherReason = value;
+        DeclineOtherReasonTouched = true;
+    }
+
+    private void OnOtherReasonClick()
+        => OnDeclineOptionChange("Other reason");
+
+
+    private async void OnDeclineModalCancelClick()
+    {
+        await OnDeclineModalCancel.InvokeAsync();
+
+        DeclineOption = string.Empty;
+        DeclineOptionTouched = false;
+        DeclineOtherReason = string.Empty;
+        DeclineOtherReasonTouched = false;
+    }
+
+    private async Task OnDeclineModalConfirmClick()
+    {
+        DeclineOptionTouched = true;
+        DeclineOtherReasonTouched = true;
+
+        if (CanReviewBeDeclined)
+        {
+            if (!DeclineOptionValid || !DeclineOtherReasonValid)
+                return;
+
+            await OnDeclineModalConfirm.InvokeAsync(DeclineReason);
+
+            DeclineOption = string.Empty;
+            DeclineOptionTouched = false;
+            DeclineOtherReason = string.Empty;
+            DeclineOtherReasonTouched = false;
+        }
+        else
+        {
+            OnDeclineModalCancelClick();
+        }
+    }
+
+    private string GetCellClass(ReviewerTask task)
+    {
+        if (task.AssessmentDueDate > DateTimeOffset.Now && task.ReviewerTaskState is AssessmentReviewerState.Created or AssessmentReviewerState.Drafted)
+            return "reviewme-text-black reviewme-grayscale-0";
+        return "reviewme-text-gray-500 reviewme-grayscale";
+    }
+
+}

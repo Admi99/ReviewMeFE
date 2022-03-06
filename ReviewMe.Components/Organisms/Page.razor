@@ -1,0 +1,45 @@
+﻿<main class="reviewme-max-w-95/100 reviewme-mx-auto reviewme-px-2 reviewme-space-y-5">
+    <header class="reviewme-py-4">
+        <h1 class="reviewme-text-5xl">
+            @Title
+        </h1>
+    </header>
+    @if (ShowNavigation)
+    {
+        <nav class="reviewme-py-4">
+            <div class="reviewme-bg-gray-100 reviewme-flex reviewme-text-gray-500">
+                <NavLink href="/reviews"
+                     class="reviewme-py-6 reviewme-px-10 reviewme-border reviewme-font-medium reviewme-block"
+                     ActiveClass="reviewme-bg-white reviewme-border-b-0 reviewme-border-l-0 reviewme-border-r-0 reviewme-text-red-500 reviewme-border-t-8 reviewme-border-red-500 reviewme-pt-4"
+                     Match="NavLinkMatch.All">
+                    <span class="fa fa-tasks reviewme-mr-2"></span>
+                    <span>My Tasks</span>
+                </NavLink>
+                <NavLink href="/reviews/employees"
+                         class="reviewme-py-6 reviewme-px-10 reviewme-border reviewme-font-medium reviewme-block"
+                         ActiveClass="reviewme-bg-white reviewme-border-b-0 reviewme-border-l-0 reviewme-border-r-0 reviewme-text-red-500 reviewme-border-t-8 reviewme-border-red-500 reviewme-pt-4">
+                    <span class="fa fa-user-cog reviewme-mr-2"></span>
+                    <span>Administration</span>
+                </NavLink>
+                <div class="reviewme-flex-grow reviewme-bg-white"></div>
+            </div>
+        </nav>
+    }
+    <div class="reviewme-py-4">
+        @ChildContent
+    </div>
+</main>
+
+@code {
+
+    [Parameter]
+    [EditorRequired]
+    public string Title { get; set; } = string.Empty;
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    [Parameter]
+    public bool ShowNavigation { get; set; } = true;
+
+}

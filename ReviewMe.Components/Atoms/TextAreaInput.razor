@@ -1,0 +1,23 @@
+﻿<textarea rows="6"
+          value="@Value"
+          name="@Name"
+          id="@Name"
+          @oninput="@(e => OnChange.InvokeAsync(e.Value?.ToString()))"
+          class="reviewme-rounded reviewme-flex reviewme-overflow-hidden
+              reviewme-text-black reviewme-py-2 reviewme-px-3 reviewme-border reviewme-border-gray-300 reviewme-bg-white
+              hover:reviewme-border-gray-400  focus:reviewme-outline-none focus:reviewme-ring-2 focus:reviewme-ring-blue-500 reviewme-transition"></textarea>
+
+@code {
+
+    [Parameter]
+    [EditorRequired]
+    public string Value { get; set; } = string.Empty!;
+
+    [Parameter]
+    [EditorRequired]
+    public string? Name { get; set; } = string.Empty!;
+
+    [Parameter]
+    [EditorRequired]
+    public EventCallback<string> OnChange { get; set; } = default!;
+}

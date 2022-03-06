@@ -1,0 +1,50 @@
+﻿
+<div class="reviewme-relative reviewme-flex ">
+    @if (string.IsNullOrEmpty(Icon) == false)
+    {
+        <div class="reviewme-flex">
+            <span class="reviewme-flex reviewme-items-center reviewme-leading-normal reviewme-bg-gray-100 reviewme-border-gray-300 reviewme-rounded reviewme-rounded-r-none reviewme-border reviewme-border-r-0 reviewme-px-3 reviewme-text-gray-400 reviewme-pl-3">
+                <i class="fas @Icon"></i>
+            </span>
+        </div>
+    }
+    <input value="@Value"
+           @oninput="@(e => OnChange.InvokeAsync(e.Value?.ToString()))"
+           type="@Type"
+           id="@Name"
+           name="@Name"
+           @onclick="@(_ => OnClick.InvokeAsync())"
+           placeholder="@Placeholder"
+           disabled="@Disabled"
+           class="reviewme-flex-1 reviewme-text-black reviewme-py-2 reviewme-px-3 reviewme-border reviewme-border-gray-300 reviewme-bg-white reviewme-rounded
+                    @(string.IsNullOrEmpty(Icon) ? "" : "reviewme-rounded-l-none") hover:reviewme-border-gray-400  focus:reviewme-outline-none
+                    focus:reviewme-ring-2 focus:reviewme-ring-blue-500 reviewme-transition disabled:reviewme-bg-gray-100" />
+</div>
+@code {
+    [Parameter]
+    [EditorRequired]
+    public string Value { get; set; } = string.Empty;
+
+    [Parameter]
+    [EditorRequired]
+    public EventCallback<string> OnChange { get; set; } = default!;
+
+    [Parameter]
+    public EventCallback OnClick { get; set; } = EventCallback.Empty;
+
+    [Parameter]
+    [EditorRequired]
+    public string Name { get; set; } = string.Empty;
+
+    [Parameter]
+    public string Type { get; set; } = string.Empty;
+
+    [Parameter]
+    public string Placeholder { get; set; } = string.Empty;
+
+    [Parameter]
+    public string Icon { get; set; } = string.Empty;
+
+    [Parameter]
+    public bool Disabled { get; set; } = false;
+}

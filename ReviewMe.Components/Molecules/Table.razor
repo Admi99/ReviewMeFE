@@ -1,0 +1,125 @@
+﻿@using System.Collections
+@typeparam TItem
+
+<section class="reviewme-overflow-hidden reviewme-rounded-lg reviewme-border-2 reviewme-border-gray-300">
+    <table class="reviewme-w-full reviewme-text-left reviewme-text-lg reviewme-table-auto">
+        <thead>
+            <tr>
+                @foreach (var header in Headers)
+                {
+                    <th class="reviewme-py-4 reviewme-px-8 reviewme-border-b reviewme-border-gray-300 reviewme-bg-gray-100 reviewme-font-bold">@header</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @if (Items.Count == 0)
+            {
+                <tr>
+                    <TableCell Colspan="@Headers.Count">
+                        <Alert Variant="AlertVariant.Info">
+                            No data found.
+                        </Alert>
+                    </TableCell>
+                </tr>
+            }
+            @foreach (var item in Items.Skip(PageSize * CurrentPage).Take(PageSize))
+            {
+                if (TableRow is not null)
+                {
+                    <tr class="reviewme-border-b reviewme-border-gray-200">
+                        @TableRow(item)
+                    </tr>
+                }
+            }
+        </tbody>
+        <tfoot class="reviewme-bg-gray-100 ">
+            <tr>
+                <TableCell Colspan="@Headers.Count">
+                    @if (Items.Count <= PageSize)
+                    {
+                        <p class="reviewme-text-xs reviewme-text-center reviewme-text-gray-400">Shown records from @(CurrentPage * PageSize + 1) to @(Math.Min((CurrentPage + 1) * PageSize, Items.Count)), total records: @Items.Count</p>
+                    }
+                    else
+                    {
+                        <nav class="reviewme-flex reviewme-justify-between reviewme-items-start">
+                            <Button Size="ButtonSize.Regular"
+                                Variant="ButtonVariant.BlueOutline"
+                                OnClick="() => { CurrentPage = CurrentPage == 0 ? 0 : CurrentPage - 1; }"
+                                Disabled="CurrentPage == 0">
+                                Previous
+                            </Button>
+                            <div class="reviewme-flex reviewme-flex-col reviewme-items-center">
+                                <div class="reviewme-flex reviewme-gap-1">
+                                    @foreach (var page in DisplayedPages)
+                                    {
+                                        var pageIndex = DisplayedPages.IndexOf(page);
+                                        var previousPage = DisplayedPages[pageIndex == 0 ? pageIndex : pageIndex - 1];
+
+                                        if (page - previousPage > 1)
+                                        {
+                                            <Button Size="ButtonSize.Regular"
+                                                    Variant="CurrentPage == page ? ButtonVariant.BlueSolid : ButtonVariant.BlueOutline"
+                                                    OnClick="() => { CurrentPage = CurrentPage > previousPage ? Math.Max(page - 3, 0) : Math.Min(previousPage + 3, PageCount - 1); }">
+                                                ...
+                                            </Button>
+                                        }
+
+                                        <Button Size="ButtonSize.Regular"
+                                        Variant="CurrentPage == page ? ButtonVariant.BlueSolid : ButtonVariant.BlueOutline"
+                                        OnClick="() => { CurrentPage = page; }">
+                                            @(page + 1)
+                                        </Button>
+
+                                    }
+                                </div>
+                                <p class="reviewme-text-xs reviewme-text-center reviewme-text-gray-400 reviewme-mt-2">Shown records from @(CurrentPage * PageSize + 1) to @(Math.Min((CurrentPage + 1) * PageSize, Items.Count)), total records: @Items.Count</p>
+                            </div>
+                            <Button Size="ButtonSize.Regular"
+                                Variant="ButtonVariant.BlueOutline"
+                                OnClick="() => { CurrentPage = CurrentPage == PageCount - 1 ? CurrentPage : CurrentPage + 1; }"
+                                Disabled="CurrentPage == PageCount -1">
+                                Next
+                            </Button>
+                        </nav>
+                    }
+
+                </TableCell>
+            </tr>
+        </tfoot>
+    </table>
+</section>
+
+@code {
+
+    [Parameter]
+    public ICollection<string> Headers { get; set; } = default!;
+
+    [Parameter]
+    public RenderFragment<TItem> TableRow { get; set; } = default!;
+
+    [Parameter]
+    public IReadOnlyList<TItem> Items { get; set; } = default!;
+
+    private List<int> DisplayedPages
+        => Enumerable.Range(0, 2) // first two
+            .Concat(Enumerable.Range(PageCount - 1, 2)) // last two
+            .Concat(Enumerable.Range(CurrentPage - 2, 5)) // 2 before and 2 after current
+            .Concat(CurrentPage <= 3 ? Enumerable.Range(0, 6) : Enumerable.Empty<int>()) // Show more cells when at start
+            .Concat(CurrentPage >= PageCount - 3 ? Enumerable.Range(PageCount - 5, 2) : Enumerable.Empty<int>()) // Show more cells when at end
+            .Where(page => page >= 0 && page < PageCount)
+            .OrderBy(page => page)
+            .Distinct()
+            .ToList();
+
+    private int CurrentPage { get; set; }
+
+    private int PageCount => Items.Count / PageSize + (Items.Count % PageSize > 0 ? 1 : 0);
+
+    private int PageSize = 10;
+
+    protected override void OnParametersSet()
+    {
+        CurrentPage = 0; // Reset pagination when changing items (eg. filter)
+    }
+
+}

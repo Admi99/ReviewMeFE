@@ -1,0 +1,20 @@
+﻿@page "/reviews/{Id:int}"
+
+<ReviewerTaskTemplate ReviewerTaskTask="ReviewerTaskService.Get(Id)"
+                      OnDraft="OnDraft"
+                      OnSubmit="OnSubmit"/>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    [Inject]
+    IReviewerTaskService ReviewerTaskService { get; set; } = default!;
+
+    private async Task OnDraft((int AssessmentId, string Feedback, string AreasForImprovements) data)
+        => await ReviewerTaskService.Draft(data.AssessmentId, data.Feedback, data.AreasForImprovements);
+
+    private async Task OnSubmit((int AssessmentId, string Feedback,string AreasForImprovements) data)
+        => await ReviewerTaskService.Submit(data.AssessmentId, data.Feedback, data.AreasForImprovements);
+
+}

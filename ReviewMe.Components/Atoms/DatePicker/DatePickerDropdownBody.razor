@@ -1,0 +1,60 @@
+﻿<div class="@Utilities.ClassNames("reviewme-grid reviewme-p-3",
+                DatePickerContentType == DatePickerContentType.Days ? "reviewme-grid-cols-7 reviewme-gap-2" : "reviewme-grid-cols-3 reviewme-gap-4",
+                DatePickerContentType == DatePickerContentType.Years ? " reviewme-gap-x-8  reviewme-px-5" : "")">
+    @if (DatePickerContentType == DatePickerContentType.Days)
+    {
+        @foreach (var day in DaysInWeek)
+        {
+            <div class="reviewme-text-gray-800 reviewme-px-1 reviewme-text-center reviewme-text-sm">@day</div>
+        }
+    }
+
+    @for (var i = 0; i < OffsetSize; i++)
+    {
+        <div class="reviewme-text-center reviewme-px-1 reviewme-border-transparent reviewme-text-sm"></div>
+    }
+
+    @foreach (var cell in Cells)
+    {
+        <button class="@Utilities.ClassNames("reviewme-text-center reviewme-px-1 reviewme-text-sm reviewme-leading-none reviewme-rounded reviewme-leading-loose reviewme-border-2 disabled:reviewme-text-gray-400 reviewme-transition",
+                           cell.IsOutlined ? "reviewme-border-blue-500" : "reviewme-border-transparent",
+                           cell.IsSelected ? "reviewme-bg-blue-500 reviewme-text-white" : "reviewme-text-gray-600")"
+            disabled="@cell.IsDisabled"
+            @onclick="() => OnCellClick.InvokeAsync(cell.Value)">
+            @cell.Display
+        </button>
+    }
+</div>
+
+@code {
+    [Parameter]
+    [EditorRequired]
+    public DatePickerContentType DatePickerContentType { get; set; }
+
+    [Parameter]
+    [EditorRequired]
+    public EventCallback<DateTimeOffset> OnCellClick { get; set; } = default!;
+
+    [Parameter]
+    [EditorRequired]
+    public int OffsetSize { get; set; }
+
+    [Parameter]
+    [EditorRequired]
+    public IReadOnlyCollection<Cell> Cells { get; set; } = default!;
+
+    private List<string> DaysInWeek
+        => Enumerable.Range(Utilities.FirstDayOfWeek, 7 - Utilities.FirstDayOfWeek)
+            .Concat(Enumerable.Range(0, Utilities.FirstDayOfWeek))
+            .Select(Utilities.GetShortestDayName)
+            .ToList();
+
+    public class Cell
+    {
+        public DateTimeOffset Value { get; set; }
+        public string Display { get; set; } = string.Empty;
+        public bool IsDisabled { get; set; }
+        public bool IsSelected { get; set; }
+        public bool IsOutlined { get; set; }
+    }
+}

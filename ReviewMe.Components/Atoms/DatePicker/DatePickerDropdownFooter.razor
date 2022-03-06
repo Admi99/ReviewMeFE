@@ -1,0 +1,20 @@
+﻿<div class="reviewme-flex reviewme-justify-between reviewme-items-center reviewme-px-3 reviewme-py-2 reviewme-border-t">
+    <button class="reviewme-text-sm reviewme-text-gray-500 hover:reviewme-text-pink-600 hover:reviewme-underline"
+            @onclick="OnTodayClick">
+        Today
+    </button>
+    <button class="reviewme-text-sm reviewme-text-white reviewme-font-light reviewme-rounded reviewme-px-1.5 reviewme-border-2 reviewme-bg-blue-500 hover:reviewme-bg-blue-500 reviewme-text-white reviewme-border-blue-500 hover:reviewme-border-blue-500"
+            @onclick="OnOkClick">
+        Ok
+    </button>
+</div>
+
+@code {
+    [Parameter]
+    [EditorRequired]
+    public EventCallback OnTodayClick { get; set; } = default!;
+
+    [Parameter]
+    [EditorRequired]
+    public EventCallback OnOkClick { get; set; } = default!;
+}

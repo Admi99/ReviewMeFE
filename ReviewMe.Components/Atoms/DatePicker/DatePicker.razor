@@ -1,0 +1,228 @@
+﻿<div class="reviewme-relative">
+    <div class="reviewme-border reviewme-max-w-sm reviewme-border-gray-300 reviewme-rounded hover:reviewme-border-gray-400 reviewme-relative reviewme-overflow-hidden">
+        <input type="text"
+               value="@(Value == default ? "Select date" : Value.ToString(DateFormat))"
+               @onclick="ToggleDropdown"
+               name="@Name"
+               readonly
+               class="reviewme-h-10 reviewme-pl-3 reviewme-pr-6 reviewme-appearance-none focus:reviewme-outline-none reviewme-bg-transparent reviewme-w-full"
+               placeholder="Select date">
+        <div class="reviewme-text-gray-400 reviewme-px-3 reviewme-absolute reviewme-right-0 reviewme-top-0 reviewme-bottom-0 reviewme-pointer-events-none reviewme-flex reviewme-items-center reviewme-bg-white">
+            <span class="fas fa-calendar"></span>
+        </div>
+    </div>
+
+    @if (IsDropdownVisible)
+    {
+        <OutsideElementClick OnOutsideClick="ToggleDropdown">
+            <div class="reviewme-bg-white reviewme-rounded reviewme-shadow reviewme-absolute reviewme-z-20">
+                <DatePickerDropdownHeader OnDoublePreviousClick="OnDoublePreviousClick"
+                                          OnPreviousClick="OnPreviousClick"
+                                          IsPreviousClickVisible="DatePickerContentType == DatePickerContentType.Days"
+                                          OnNextClick="OnNextClick"
+                                          OnDoubleNextClick="OnDoubleNextClick"
+                                          IsNextClickVisible="DatePickerContentType == DatePickerContentType.Days">
+
+                    @if (DatePickerContentType == DatePickerContentType.Days)
+                    {
+                        <button class="reviewme-text-sm hover:reviewme-underline" @onclick="_ => SetContentType(DatePickerContentType.Months)">
+                            @DropdownValue.ToString("MMMM")
+                        </button>
+                        <button class="reviewme-text-sm hover:reviewme-underline" @onclick="_ => SetContentType(DatePickerContentType.Years)">
+                            @DropdownValue.Year
+                        </button>
+                    }
+
+                    @if (DatePickerContentType == DatePickerContentType.Months)
+                    {
+                        <button class="reviewme-text-sm hover:reviewme-underline" @onclick="_ => SetContentType(DatePickerContentType.Years)">
+                            @DropdownValue.Year
+                        </button>
+                    }
+
+                    @if (DatePickerContentType == DatePickerContentType.Years)
+                    {
+                        <span class="reviewme-text-sm">@Utilities.GetClosestDecade(DropdownValue.Year) - @(Utilities.GetClosestDecade(DropdownValue.Year) + 10)</span>
+                    }
+                </DatePickerDropdownHeader>
+                <DatePickerDropdownBody DatePickerContentType="DatePickerContentType"
+                                        OffsetSize="OffsetSize()"
+                                        OnCellClick="value => OnCellClick(value, DatePickerContentType)"
+                                        Cells="Cells" />
+                @if (DatePickerContentType == DatePickerContentType.Days)
+                {
+                    <DatePickerDropdownFooter OnTodayClick="SetToday" OnOkClick="() => SetValue(DropdownValue)" />
+                }
+            </div>
+        </OutsideElementClick>
+    }
+</div>
+
+@code {
+    [Parameter]
+    [EditorRequired]
+    public DateTimeOffset Value { get; set; }
+
+    [Parameter]
+    [EditorRequired]
+    public EventCallback<DateTimeOffset> OnChange { get; set; } = default!;
+
+    [Parameter]
+    [EditorRequired]
+    public string Name { get; set; } = string.Empty;
+
+    [Parameter]
+    public bool CanSelectWeekend { get; set; }
+
+    [Parameter]
+    public string DateFormat { get; set; } = "d";
+
+    [Parameter]
+    public DateTimeOffset MinValue { get; set; } = DateTimeOffset.MinValue;
+
+
+    private DateTimeOffset DropdownValue { get; set; } = DateTimeOffset.Now.Date;
+
+    private DatePickerContentType DatePickerContentType { get; set; }
+
+    private bool IsDropdownVisible { get; set; }
+
+    private DateTime Today => DateTimeOffset.Now.Date;
+
+
+    public int OffsetSize()
+    {
+        if (DatePickerContentType != DatePickerContentType.Days) return 0;
+        var offset = (int)new DateTime(DropdownValue.Year, DropdownValue.Month, 1).DayOfWeek - Utilities.FirstDayOfWeek;
+        return offset < 0 ? 7 + offset : offset;
+    }
+
+    private IReadOnlyCollection<DatePickerDropdownBody.Cell> Cells => DatePickerContentType switch
+    {
+        DatePickerContentType.Days => Utilities
+            .DaysInMonth(DropdownValue)
+            .Select(day => new DatePickerDropdownBody.Cell
+            {
+                Value = day,
+                Display = day.Day.ToString(),
+                IsOutlined = Today.Date == day.Date,
+                IsSelected = DropdownValue == day,
+                IsDisabled = (CanSelectWeekend == false && (day.DayOfWeek == DayOfWeek.Saturday || day.DayOfWeek == DayOfWeek.Sunday)) ||
+                             (MinValue != default && day < MinValue)
+            }).ToList(),
+
+        DatePickerContentType.Months => Utilities
+            .MonthsInYear(DropdownValue)
+            .Select(day => new DatePickerDropdownBody.Cell
+            {
+                Value = day,
+                Display = day.ToString("MMMM"),
+                IsOutlined = Today.Date == day.Date,
+                IsSelected = DropdownValue == day,
+                IsDisabled = MinValue != default && day < MinValue
+            })
+            .ToList(),
+
+        DatePickerContentType.Years => Utilities
+            .YearsInDecade(DropdownValue)
+            .Select(day => new DatePickerDropdownBody.Cell
+            {
+                Value = day,
+                Display = day.Year.ToString(),
+                IsOutlined = Today.Date == day.Date,
+                IsSelected = DropdownValue == day,
+                IsDisabled = MinValue != default && day < MinValue
+            })
+            .ToList(),
+
+        _ => new List<DatePickerDropdownBody.Cell>()
+    };
+
+
+    // General handlers
+
+    private void ToggleDropdown()
+    {
+        IsDropdownVisible = !IsDropdownVisible;
+
+        if (IsDropdownVisible == false)
+            DatePickerContentType = DatePickerContentType.Days;
+    }
+
+    private void OnCellClick(DateTimeOffset value, DatePickerContentType datePickerContentType)
+    {
+        if (datePickerContentType == DatePickerContentType.Days)
+        {
+            SetDropdownValue(value);
+            SetValue(value);
+        }
+
+        if (datePickerContentType == DatePickerContentType.Months)
+        {
+            SetDropdownValue(value);
+            SetContentType(DatePickerContentType.Days);
+        }
+
+        if (datePickerContentType == DatePickerContentType.Years)
+        {
+            SetDropdownValue(value);
+            SetContentType(DatePickerContentType.Months);
+        }
+    }
+
+    private void SetContentType(DatePickerContentType datePickerContentType)
+    {
+        DatePickerContentType = datePickerContentType;
+    }
+
+    private void SetDropdownValue(DateTimeOffset value)
+    {
+        DropdownValue = value;
+    }
+
+    private void SetToday()
+    {
+        var now = DateTimeOffset.Now.Date;
+        SetValue(now);
+    }
+
+    private void SetValue(DateTimeOffset value)
+    {
+        SetDropdownValue(value);
+        ToggleDropdown();
+        OnChange.InvokeAsync(DropdownValue);
+    }
+
+
+    // Header buttons handlers
+
+    private void OnPreviousClick()
+    {
+        if (DatePickerContentType == DatePickerContentType.Days)
+            DropdownValue = DropdownValue.AddMonths(-1);
+    }
+
+    private void OnDoublePreviousClick()
+    {
+        if (DatePickerContentType == DatePickerContentType.Days || DatePickerContentType == DatePickerContentType.Months)
+            DropdownValue = DropdownValue.AddYears(-1);
+
+        if (DatePickerContentType == DatePickerContentType.Years)
+            DropdownValue = DropdownValue.AddYears(-10);
+    }
+
+    private void OnNextClick()
+    {
+        if (DatePickerContentType == DatePickerContentType.Days)
+            DropdownValue = DropdownValue.AddMonths(1);
+    }
+
+    private void OnDoubleNextClick()
+    {
+        if (DatePickerContentType == DatePickerContentType.Days || DatePickerContentType == DatePickerContentType.Months)
+            DropdownValue = DropdownValue.AddYears(1);
+
+        if (DatePickerContentType == DatePickerContentType.Years)
+            DropdownValue = DropdownValue.AddYears(10);
+    }
+}

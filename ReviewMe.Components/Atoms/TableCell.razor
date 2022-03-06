@@ -1,0 +1,14 @@
+﻿<td class="reviewme-py-4 reviewme-px-8 @Class" colspan="@ColSpan">
+    @ChildContent
+</td>
+
+@code {
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    [Parameter]
+    public string Class { get; set; } = "";
+
+    [Parameter]
+    public int ColSpan { get; set; } = 1;
+}

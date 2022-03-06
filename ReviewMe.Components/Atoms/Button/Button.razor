@@ -1,0 +1,32 @@
+﻿<button @onclick="OnClick"
+        disabled="@Disabled"
+        class="@Utilities.ClassNames("reviewme-text-sm  reviewme-font-medium  reviewme-rounded reviewme-transition reviewme-flex reviewme-items-center reviewme-justify-center reviewme-border reviewme-gap-2",
+                       Variant == ButtonVariant.BlueSolid ? "reviewme-bg-blue-500 reviewme-text-white reviewme-border-blue-500 hover:reviewme-bg-blue-600 hover:reviewme-border-blue-600" : "",
+                       Variant == ButtonVariant.BlueOutline ? "reviewme-bg-white reviewme-text-blue-500 reviewme-border-blue-500 hover:reviewme-text-white hover:reviewme-bg-blue-500 disabled:reviewme-border-gray-500 disabled:reviewme-text-gray-500 disabled:reviewme-bg-gray-50" : "",
+                       Variant == ButtonVariant.PinkSolid ? "reviewme-bg-red-500 reviewme-text-white reviewme-border-red-500 hover:reviewme-bg-red-600 hover:reviewme-border-red-600" : "",
+                       Variant == ButtonVariant.WhiteOutline ? "reviewme-text-blue-900 hover:reviewme-bg-blue-50 reviewme-border-transparent" : "",
+                       Size == ButtonSize.Small ? "reviewme-py-1 reviewme-px-2" : "",
+                       Size == ButtonSize.Regular ? "reviewme-py-2 reviewme-px-4" : "")">
+    @ChildContent
+</button>
+
+@code {
+
+    [Parameter]
+    [EditorRequired]
+    public ButtonVariant Variant { get; set; }
+
+    [Parameter]
+    [EditorRequired]
+    public ButtonSize Size { get; set; }
+
+    [Parameter]
+    [EditorRequired]
+    public RenderFragment ChildContent { get; set; } = default!;
+
+    [Parameter]
+    public EventCallback OnClick { get; set; }
+
+    [Parameter]
+    public bool Disabled { get; set; }
+}

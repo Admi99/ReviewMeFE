@@ -1,0 +1,12 @@
+﻿@if (IsOpen)
+{
+    @ChildContent
+}
+
+@code {
+    [Parameter]
+    public bool IsOpen { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+}

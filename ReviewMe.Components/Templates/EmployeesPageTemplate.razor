@@ -1,0 +1,197 @@
+﻿@using ReviewMe.Components.Molecules
+@using System.Globalization
+@using ReviewMe.Components.Extensions
+@using ReviewMe.Models.Employees
+
+<Page Title="Employees">
+    <section>
+        <div class="reviewme-flex reviewme-items-end reviewme-gap-3">
+            <span class="reviewme-pb-2 reviewme-text-gray-500">
+                <i class="fas fa-filter fa-lg "></i>
+            </span>
+            <Field Label="Employee name" Name="Employee">
+                <FieldInput Context="name">
+                    <TextInput Name="@name"
+                               Placeholder="Filter by name..."
+                               Icon="fa-search"
+                               Value="@NameFilter"
+                               OnChange="value => NameFilter = value" />
+                </FieldInput>
+            </Field>
+            <Field Label="Department" Name="Department">
+                <FieldInput Context="name">
+                    <SelectInput Name="@name"
+                                 Placeholder="Filter by department..."
+                                 Items="ListOfDepartments.ToDictionary(k => k, v => v)"
+                                 Value="@DepartmentFilter"
+                                 OnChange="value => DepartmentFilter = value" />
+                </FieldInput>
+            </Field>
+            <Field Label="Location" Name="Location">
+                <FieldInput Context="name">
+                    <SelectInput Name="@name"
+                                 Placeholder="Filter by location..."
+                                 Items="ListOfLocations.ToDictionary(k => k, v => v)"
+                                 Value="@LocationFilter"
+                                 OnChange="value => LocationFilter = value" />
+                </FieldInput>
+            </Field>
+            <Field Label="PR Month" Name="PerformanceReviewMonth">
+                <FieldInput Context="name">
+                    <SelectInput Name="@name"
+                                 Placeholder="Filter by PR month..."
+                                 Items="ListOfMonths"
+                                 Value="@MonthFilter"
+                                 OnChange="value => MonthFilter = value" />
+                </FieldInput>
+            </Field>
+            <Field Label="Assessment" Name="AssessmentState">
+                <FieldInput Context="name">
+                    <SelectInput Name="@name"
+                                 Placeholder="Filter by assessment..."
+                                 Items="ListOfAssessmentStates"
+                                 Value="@AssessmentStateFilter"
+                                 OnChange="value => AssessmentStateFilter = value" />
+                </FieldInput>
+            </Field>
+        </div>
+    </section>
+
+    <section class="reviewme-w-full reviewme-flex reviewme-items-end reviewme-justify-end reviewme-py-2">
+        <Button OnClick="ResetFilters" Variant="ButtonVariant.BlueSolid" Size="ButtonSize.Small">
+            <i class="fas fa-times"></i>
+            <span>Reset filters</span>
+        </Button>
+    </section>
+
+    <TaskContext Task="EmployeesTask" Context="employees">
+        @{
+            var filteredEmployees = employees
+                        .Where(employee => string.IsNullOrEmpty(NameFilter) || (employee.SurnameFirstName).WithoutDiacritics().Contains(NameFilter.WithoutDiacritics(), StringComparison.OrdinalIgnoreCase))
+                        .Where(employee => string.IsNullOrEmpty(DepartmentFilter) || (employee.Department != string.Empty && employee.Department.Equals(DepartmentFilter)))
+                        .Where(employee => string.IsNullOrEmpty(LocationFilter) || (employee.Location != string.Empty && employee.Location.Equals(LocationFilter)))
+                        .Where(employee => string.IsNullOrEmpty(MonthFilter) || employee.PerformanceReviewMonth.Month.ToString().Equals(MonthFilter))
+                        .Where(employee => string.IsNullOrEmpty(AssessmentStateFilter) || employee.HasOpenAssessment.ToString().Equals(AssessmentStateFilter))
+                        .ToList();
+        }
+        <Table Headers="TableHeaders" Items="filteredEmployees">
+            <TableRow Context="employee">
+                <TableCell Class="reviewme-text-gray-800">
+                    <div class="reviewme-flex reviewme-gap-8 reviewme-items-center">
+                        <div class="reviewme-h-16 reviewme-w-16 reviewme-rounded-full reviewme-overflow-hidden">
+                            <EmployeeImage Src="@employee.ImageSrc" />
+                        </div>
+                        <span>@employee.SurnameFirstName</span>
+                    </div>
+                </TableCell>
+                <TableCell Class="reviewme-text-gray-800">
+                    <div>@employee.Department</div>
+                    <div class="reviewme-text-sm reviewme-text-gray-500">@employee.Position</div>
+                </TableCell>
+                <TableCell Class="reviewme-text-gray-800">
+                    @employee.Location
+                </TableCell>
+                <TableCell Class="reviewme-text-gray-800">
+                    @if (employee.HasOpenAssessment)
+                    {
+                        @employee.AssessmentDueDate.ToString("d")
+                    }
+                </TableCell>
+                <TableCell Class="reviewme-text-gray-800">
+                    @if (employee.HasOpenAssessment)
+                    {
+                        @employee.PerformanceReviewDate.ToString("d")
+                    }
+                </TableCell>
+                <TableCell Class="reviewme-text-gray-800">
+                    @employee.PerformanceReviewMonth.ToString("MMMM", CultureInfo.InvariantCulture) @employee.PerformanceReviewDate.Year<br>
+                    <div class="reviewme-flex reviewme-items-center reviewme-gap-1">
+                        @{
+                            var dur = CalculateRemainingMonths(employee);
+                            if (dur >= 2)
+                            {
+                                <div class="reviewme-bg-green-400 reviewme-w-3 reviewme-h-3 reviewme-rounded-full"></div>
+                                <div class="reviewme-text-sm reviewme-text-gray-700">In @dur months</div>
+                            }
+                            else if (dur >= 1)
+                            {
+                                <div class="reviewme-bg-yellow-400 reviewme-w-3 reviewme-h-3 reviewme-rounded-full"></div>
+                                <div class="reviewme-text-sm reviewme-text-gray-700">Next Month</div>
+                            }
+                            else if (dur == 0)
+                            {
+                                <div class="reviewme-bg-red-500 reviewme-w-3 reviewme-h-3 reviewme-rounded-full"></div>
+                                <div class="reviewme-text-sm reviewme-text-gray-700">This Month</div>
+                            }
+                            else
+                            {
+                                <div class="reviewme-bg-red-500 reviewme-w-3 reviewme-h-3 reviewme-rounded-full"></div>
+                                <div class="reviewme-text-sm reviewme-text-gray-700">Missed</div>
+                            }
+                        }
+                    </div>
+                </TableCell>
+                <TableCell>
+                    <ButtonLink Link=@($"/reviews/employees/{employee.Id}") Variant="ButtonVariant.BlueOutline" Size="ButtonSize.Small">
+                        @(employee.HasOpenAssessment ? "Edit Assessment" : "Open Assessment")
+                    </ButtonLink>
+                </TableCell>
+            </TableRow>
+        </Table>
+    </TaskContext>
+</Page>
+
+@code {
+    [Parameter]
+    [EditorRequired]
+    public Task<List<Employee>> EmployeesTask { get; set; } = default!;
+
+    private HashSet<string> ListOfDepartments
+        => EmployeesTask
+            .UseContext(StateHasChanged)
+            .Select(emp => emp.Department)
+            .Where(x => x != string.Empty)
+            .ToHashSet();
+
+    private HashSet<string> ListOfLocations
+        => EmployeesTask
+            .UseContext(StateHasChanged)
+            .Select(emp => emp.Location)
+            .Where(x => x != string.Empty)
+            .ToHashSet();
+
+    private Dictionary<string, string> ListOfMonths
+        => Enumerable
+            .Range(1, 12)
+            .ToDictionary(
+                month => month.ToString(),
+                month => DateTimeFormatInfo.InvariantInfo.GetMonthName(month));
+
+    private Dictionary<string, string> ListOfAssessmentStates
+        => new()
+            {
+                { true.ToString(), "Opened" },
+                { false.ToString(), "Closed" }
+            };
+
+    private string[] TableHeaders
+        => new[] { "Employee", "Department & Position", "Location", "Assessment due date", "PR date", "PR month", " " };
+
+    private string NameFilter { get; set; } = string.Empty;
+    private string DepartmentFilter { get; set; } = string.Empty;
+    private string LocationFilter { get; set; } = string.Empty;
+    private string MonthFilter { get; set; } = string.Empty;
+    private string AssessmentStateFilter { get; set; } = string.Empty;
+
+    private void ResetFilters()
+    {
+        NameFilter = string.Empty;
+        DepartmentFilter = string.Empty;
+        LocationFilter = string.Empty;
+        MonthFilter = string.Empty;
+        AssessmentStateFilter = string.Empty;
+    }
+
+    private int CalculateRemainingMonths(Employee employee)
+        => ((employee.PerformanceReviewMonth.Year - DateTime.Now.Year) * 12) + employee.PerformanceReviewMonth.Month - DateTime.Now.Month;
+}

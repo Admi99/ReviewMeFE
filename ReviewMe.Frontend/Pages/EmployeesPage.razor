@@ -1,0 +1,9 @@
+﻿@page "/reviews/employees"
+
+<EmployeesPageTemplate EmployeesTask="EmployeesService.Get()" />
+
+@code {
+
+    [Inject]
+    IEmployeesService EmployeesService { get; set; } = default!;
+}

@@ -1,0 +1,50 @@
+﻿<div class="reviewme-flex reviewme-flex-col reviewme-gap-1 reviewme-transition
+     @(IsTouched && IsValid is false ? "reviewme-border-l-4 reviewme-border-red-500 reviewme-pl-2" : "")">
+    @if (string.IsNullOrEmpty(Label) == false)
+    {
+        <label for="@Name" class="@(IsLabelBold ? "reviewme-font-bold" : "reviewme-text-gray-700") ">
+            @Label
+            @if (IsRequired)
+            {
+                <span class="reviewme-text-red-500"> *</span>
+            }
+        </label>
+    }
+
+
+    @FieldInput?.Invoke(Name ?? throw new InvalidOperationException())
+
+    @if (IsTouched && IsValid is false)
+    {
+        <p class="reviewme-text-red-500 reviewme-mx-1">@ValidationMessage</p>
+    }
+</div>
+
+@code {
+
+    [Parameter]
+    public string Label { get; set; } = string.Empty;
+
+    [Parameter]
+    [EditorRequired]
+    public string Name { get; set; } = string.Empty;
+
+    [Parameter]
+    [EditorRequired]
+    public RenderFragment<string> FieldInput { get; set; } = default!;
+
+    [Parameter]
+    public bool IsValid { get; set; }
+
+    [Parameter]
+    public bool IsTouched { get; set; }
+
+    [Parameter]
+    public string ValidationMessage { get; set; } = string.Empty;
+
+    [Parameter]
+    public bool IsRequired { get; set; }
+
+    [Parameter]
+    public bool IsLabelBold { get; set; }
+}

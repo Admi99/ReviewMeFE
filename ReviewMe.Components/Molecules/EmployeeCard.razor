@@ -1,0 +1,45 @@
+﻿<section class="reviewme-border reviewme-rounded-2xl reviewme-flex reviewme-overflow-hidden ">
+    <div class="reviewme-h-72 reviewme-aspect-[4/5]">
+        <EmployeeImage Src="@ImageSrc" />
+    </div>
+    <div class="reviewme-col-span-2 reviewme-py-4 reviewme-px-6 reviewme-space-y-4 reviewme-flex-grow reviewme-border-l">
+        <div>
+            <h2 class="reviewme-text-red-500 reviewme-font-bold reviewme-pt-3 reviewme-pb-0 reviewme-text-2xl">
+                @SurnameFirstName
+            </h2>
+            <div class="reviewme-p-0 reviewme-pt-0 reviewme-text-lg">
+                @Position
+            </div>
+            <div class="reviewme-pt-4">
+                <LabeledValue Icon="fa-toolbox" Title="Department" Value="@Department" />
+            </div>
+            <div class="reviewme-pt-4">
+                <LabeledValue Icon="fa-user" Title="Team Leader" Value="@TeamLeader" />
+            </div>
+        </div>
+    </div>
+</section>
+
+@code{
+
+    [Parameter]
+    [EditorRequired]
+    public string ImageSrc { get; set; } = string.Empty!;
+
+    [Parameter]
+    [EditorRequired]
+    public string SurnameFirstName { get; set; } = string.Empty!;
+
+    [Parameter]
+    [EditorRequired]
+    public string Position { get; set; } = string.Empty!;
+
+    [Parameter]
+    [EditorRequired]
+    public string Department { get; set; } = string.Empty!;
+
+    [Parameter]
+    [EditorRequired]
+    public string TeamLeader { get; set; } = string.Empty!;
+
+}

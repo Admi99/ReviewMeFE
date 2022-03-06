@@ -1,0 +1,51 @@
+﻿@page "/reviews/employees/{Id:int}"
+@using ReviewMe.Models.Employees
+@using ReviewMe.Models.Reviewers
+@using ReviewMe.Components.Extensions
+
+@inject NavigationManager _navigationManager
+
+<AssessmentPageTemplate
+    EmployeeTask="EmployeeTask"
+    ReviewersTask="ReviewersTask"
+    ReviewersFeedbackTask="ReviewersFeedbackTask"
+    OnAssessmentOpen="async assessmentData => await AssessmentService.OpenAssessment(Id, assessmentData)"
+    OnAssessmentUpdate="async assessmentData => await AssessmentService.UpdateAssessment(Id, assessmentData)"
+    OnAssessmentClose="async () => await AssessmentService.CloseAssessment(Id)"
+    OnAssessmentDelete="async () => await AssessmentService.DeleteAssessment(Id)"
+    OnAdditionalFeedbackSave="async additionalFeedback => await AssessmentService.SaveAdditionalFeedback(Id, additionalFeedback)"
+    />
+
+@code {
+
+    [Parameter]
+    public int Id { get; set; }
+
+    [Inject]
+    IEmployeesService EmployeesService { get; set; } = default!;
+
+    [Inject]
+    IAssessmentService AssessmentService { get; set; } = default!;
+
+    [Inject]
+    IReviewersService ReviewerService { get; set; } = default!;
+
+    [Inject]
+    IReviewersFeedbackService ReviewersFeedbackService { get; set; } = default!;
+
+    private Task<Employee> EmployeeTask { get; set; } = default!;
+
+    private Task<Dictionary<string, List<Reviewer>>> ReviewersTask { get; set; } = default!;
+
+    private Task<List<ReviewerFeedback>> ReviewersFeedbackTask 
+        => EmployeeTask.UseContext(StateHasChanged).HasOpenAssessment 
+            ? ReviewersFeedbackService.GetByEmployeeId(Id)
+            : Task.FromResult<List<ReviewerFeedback>>(new());
+
+    protected override void OnInitialized()
+    {
+        EmployeeTask = EmployeesService.Get(Id);
+        ReviewersTask = ReviewerService.GetReviewers(Id);
+    }
+
+}

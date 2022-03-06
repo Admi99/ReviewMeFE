@@ -1,0 +1,35 @@
+﻿<details @ontoggle="ExpandAccordion" class="reviewme-outline-none">
+    <summary class="reviewme-flex reviewme-bg-gray-200 reviewme-text-black reviewme-cursor-pointer">
+        @AccordionPreHeader
+        <div class="reviewme-flex reviewme-items-center reviewme-justify-center">
+            @AccordionHeader(IsExpanded)
+        </div>
+
+        <div class="reviewme-ml-auto reviewme-mr-10  reviewme-self-center">
+            <i class="fas fa-chevron-down @(IsExpanded ? "fa-rotate-180" : "")"></i>
+        </div>
+    </summary>
+    <div>
+        @AccordionBody
+    </div>
+</details>
+
+@code {
+
+    [Parameter]
+    [EditorRequired]
+    public RenderFragment AccordionPreHeader { get; set; } = default!;
+
+    [Parameter]
+    [EditorRequired]
+    public RenderFragment AccordionBody { get; set; } = default!;
+
+    [Parameter]
+    [EditorRequired]
+    public RenderFragment<bool> AccordionHeader { get; set; } = default!;
+
+    private bool IsExpanded { get; set; }
+
+    private void ExpandAccordion() => IsExpanded = !IsExpanded;
+
+}

@@ -1,0 +1,19 @@
+{
+  "name": "reviewme.frontend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "buildcss": "postcss wwwroot/reviewme.frontend.css -o wwwroot/reviewme.frontend.min.css"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "autoprefixer": "^10.3.4",
+    "postcss-cli": "^8.3.1"
+  },
+  "devDependencies": {
+    "postcss": "^8.4.5",
+    "tailwindcss": "^3.0.2"
+  }
+}

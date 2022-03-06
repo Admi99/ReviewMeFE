@@ -1,0 +1,38 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+		<Message Text="Building css" />
+		<Exec Command="npm run buildcss" />
+		<Message Text="Done building css" />
+	</Target>
+
+	<PropertyGroup>
+		<TargetFramework>net6.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<AssemblyName>ReviewMe.Frontend</AssemblyName>
+		<PublishIISAssets>true</PublishIISAssets>
+		<BlazorWebAssemblyLoadAllGlobalizationData>true</BlazorWebAssemblyLoadAllGlobalizationData>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Blazored.LocalStorage" Version="4.1.5" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="6.0.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="6.0.0" PrivateAssets="all" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+		<PackageReference Include="System.Net.Http.Json" Version="6.0.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Content Update="wwwroot\appsettings.Development.json">
+			<DependentUpon>appsettings.json</DependentUpon>
+		</Content>
+	</ItemGroup>
+
+
+	<ItemGroup>
+		<ProjectReference Include="..\ReviewMe.Components\ReviewMe.Components.csproj" />
+		<ProjectReference Include="..\ReviewMe.Models\ReviewMe.Models.csproj" />
+	</ItemGroup>
+
+</Project>

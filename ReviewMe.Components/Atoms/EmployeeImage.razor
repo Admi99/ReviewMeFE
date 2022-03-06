@@ -1,0 +1,37 @@
+﻿@if (string.IsNullOrEmpty(Src) || IsError)
+{
+    <svg class="reviewme-object-cover reviewme-h-full reviewme-w-full"
+         version="1.1"
+         viewBox="6 0 35 45"
+         xml:space="preserve"
+         xmlns="http://www.w3.org/2000/svg"
+         xmlns:xlink="http://www.w3.org/1999/xlink">
+        <g id="Icons">
+            <g>
+                <path d="M20.43315,25.37792l-0.1188,1.3758l-5.3588,1.4212c-2.9054,0.7704-5.1961,2.6143-6.1817,4.9757    l-1.4367,3.4423c0,0,15.9707,5.9757,33.3257,0.0274l-1.4366-3.4422c-0.9857-2.3615-3.2764-4.2053-6.1817-4.9757l-5.3589-1.4211    l-0.1081-1.3324" style="fill: #8D8D8D;"/><path d="M27.67795,26.79312c0.0001,3.8489-7.3558,3.8114-7.3559-0.0324v-2.5174l7.3559,0.2588V26.79312z" style="fill: #DDBEA8;"/><path d="M29.81955,21.58332c-0.7351,2.9396-3.1085,5.0918-5.9228,5.0918    c-2.7634,0-5.0974-2.2542-5.8771-5.1122c-0.7953,0.1513-1.6282-0.5573-1.8605-1.5827c-0.2322-1.0255,0.2243-2.3713,1.0197-2.5227    l-0.1047-3.5999c0-6.8194,13.8012-6.8194,13.8012,0l-0.0931,3.6417c0.8534,0.1513,1.3222,1.4554,1.073,2.4809    C31.60595,21.00562,30.67305,21.73462,29.81955,21.58332z" style="fill: #F9D9C0;"/>
+            </g>
+        </g>
+    </svg>
+}
+else
+{
+    <img class="reviewme-object-cover reviewme-h-full reviewme-w-full"
+         src="@Src"
+         alt="Employee image"
+         loading="lazy"
+         @onerror="OnError"/>
+}
+
+@code {
+
+    [Parameter]
+    [EditorRequired]
+    public string Src { get; set; } = string.Empty;
+
+    private bool IsError { get; set; }
+
+    public void OnError()
+    {
+        IsError = true;
+    }
+}

@@ -1,0 +1,52 @@
+﻿<div class="reviewme-relative reviewme-inline-flex" >
+    @if (string.IsNullOrEmpty(Icon) == false)
+    {
+        <div class="reviewme-flex">
+            <span class="reviewme-flex reviewme-items-center reviewme-leading-normal reviewme-bg-gray-100 reviewme-border-gray-300 reviewme-rounded reviewme-rounded-r-none reviewme-border reviewme-border-r-0 reviewme-px-3 reviewme-text-gray-400 reviewme-pl-3">
+                <i class="fas @Icon"></i>
+            </span>
+        </div>
+    }
+
+    <select value="@Value"
+            @onchange="@(e => OnChange.InvokeAsync(e.Value?.ToString()))"
+            name="@Name"
+            placeholder="@Placeholder"
+            class="reviewme-border reviewme-border-gray-300 reviewme-rounded reviewme-text-gray-600 reviewme-h-10 reviewme-pl-3 reviewme-pr-10 reviewme-bg-white hover:reviewme-border-gray-400 focus:reviewme-outline-none reviewme-appearance-none  reviewme-transition">
+        <option value="">- All -</option>
+        @foreach (var (key, value) in Items)
+        {
+            if (!string.IsNullOrEmpty(value))
+            {
+                <option value="@key">@value</option>
+            }
+        }
+    </select>
+    <i class="reviewme-pointer-events-none reviewme-absolute reviewme-right-2 reviewme-top-1/2 reviewme-transform reviewme--translate-y-1/2 fas fa-chevron-down reviewme-text-gray-400"></i>
+</div>
+
+
+@code {
+
+    [Parameter]
+    [EditorRequired]
+    public string Value { get; set; } = string.Empty;
+
+    [Parameter]
+    [EditorRequired]
+    public EventCallback<string> OnChange { get; set; }
+
+    [Parameter]
+    [EditorRequired]
+    public Dictionary<string, string> Items { get; set; } = new();
+
+    [Parameter]
+    [EditorRequired]
+    public string Name { get; set; } = string.Empty;
+
+    [Parameter]
+    public string Placeholder { get; set; } = string.Empty;
+
+    [Parameter]
+    public string Icon { get; set; } = string.Empty;
+}

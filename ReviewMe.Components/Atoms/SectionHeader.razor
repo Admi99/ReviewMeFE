@@ -1,0 +1,17 @@
+﻿<header class="reviewme-flex reviewme-justify-between reviewme-border-b reviewme-border-gray-400 reviewme-mb-4  reviewme-pb-1">
+    <h2 class="reviewme-text-2xl">
+        @ChildContent
+    </h2>
+    <div class="reviewme-mb-2">
+        @AdditionalContent
+    </div>
+</header>
+
+@code {
+    [Parameter]
+    [EditorRequired]
+    public RenderFragment ChildContent { get; set; } = default!;
+
+    [Parameter]
+    public RenderFragment? AdditionalContent { get; set; } = default!;
+}

@@ -1,0 +1,57 @@
+﻿@typeparam T
+
+
+@if (Task.IsCompleted == false)
+{
+    @if (ShowContext)
+    {
+        <div class="reviewme-p-4">
+            <svg class="reviewme-animate-spin reviewme-h-8 reviewme-w-8" viewBox="0 0 24 24">
+                <circle class="reviewme-opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="transparent"></circle>
+                <path class="reviewme-opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+        </div>
+    }
+}
+else if (Task.IsFaulted)
+{
+    @if (ShowContext)
+    {
+        <div class="reviewme-p-4 reviewme-flex">
+            <Alert Variant="Alert.AlertVariant.Error">
+                @ErrorMessage
+            </Alert>
+        </div>
+    }
+}
+else
+{
+    @ChildContent?.Invoke(Task.Result)
+}
+
+
+@code {
+
+    [Parameter]
+    public Task<T> Task { get; set; } = default!;
+
+    [Parameter]
+    public RenderFragment<T>? ChildContent { get; set; }
+
+    [Parameter]
+    public string ErrorMessage { get; set; } = "Failed to load data";
+
+    [Parameter]
+    public bool ShowContext { get; set; } = true;
+
+    protected override void OnInitialized()
+    {
+        Task.ContinueWith(_ => StateHasChanged());
+    }
+
+    protected override void OnParametersSet()
+    {
+        Task.ContinueWith(_ => StateHasChanged());
+    }
+
+}

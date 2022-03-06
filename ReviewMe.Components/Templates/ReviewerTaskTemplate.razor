@@ -1,0 +1,69 @@
+﻿@using ReviewMe.Models.ReviewerTasks
+@using System.Diagnostics.CodeAnalysis
+
+<Page Title="@($"My tasks - {ReviewerTask.SurnameFirstName}")" ShowNavigation="false">
+
+    <section class="reviewme-flex reviewme-justify-between reviewme-py-2">
+        <ButtonLink Link="/reviews" Variant="ButtonVariant.BlueOutline" Size="ButtonSize.Regular">
+            <i class="fas fa-arrow-left"></i>
+            Go back to list
+        </ButtonLink>
+    </section>
+
+    <section class="reviewme-py-2 reviewme-grid reviewme-grid-cols-2">
+        <TaskContext Task="ReviewerTaskTask" Context="reviewTask">
+            <EmployeeCard ImageSrc="@reviewTask.ImageSrc"
+                          Position="@reviewTask.Position"
+                          SurnameFirstName="@reviewTask.SurnameFirstName"
+                          Department="@reviewTask.Department"
+                          TeamLeader="@reviewTask.TeamLeaderName" />
+        </TaskContext>
+
+    </section>
+
+    <section class="reviewme-py-2 reviewme-grid reviewme-grid-cols-2">
+        <Field Name="feedback" Label="Write your feedback">
+            <FieldInput Context="name">
+                <TextAreaInput Name="@name" Value="@ReviewerTask.Feedback" OnChange="value => ReviewerTask.Feedback = value" />
+            </FieldInput>
+        </Field>
+    </section>
+
+     <section class="reviewme-py-2 reviewme-grid reviewme-grid-cols-2">
+        <Field Name="areasForImprovements" Label="Areas for improvements">
+            <FieldInput Context="name">
+                <TextAreaInput Name="@name" Value="@ReviewerTask.AreasForImprovements" OnChange="value => ReviewerTask.AreasForImprovements = value" />
+            </FieldInput>
+        </Field>
+    </section>
+
+    <section class="reviewme-pt-2 reviewme-pb-8 reviewme-flex reviewme-gap-4">
+        <Button Variant="ButtonVariant.PinkSolid" Size="ButtonSize.Regular" OnClick="Draft">Save draft</Button>
+        <Button Variant="ButtonVariant.PinkSolid" Size="ButtonSize.Regular" OnClick="Submit">Submit</Button>
+    </section>
+
+</Page>
+
+
+@code {
+    [Parameter]
+    [EditorRequired]
+    public Task<ReviewerTask> ReviewerTaskTask { get; set; } = default!;
+
+    [Parameter]
+    [EditorRequired]
+    public EventCallback<(int, string, string)> OnDraft { get; set; } = default!;
+
+    [Parameter]
+    [EditorRequired]
+    public EventCallback<(int, string, string)> OnSubmit { get; set; } = default!;
+
+    public ReviewerTask ReviewerTask 
+        => ReviewerTaskTask.UseContext(StateHasChanged);
+
+    private void Draft() 
+        => OnDraft.InvokeAsync((ReviewerTask.AssessmentId, ReviewerTask.Feedback, ReviewerTask.AreasForImprovements));
+
+    private void Submit() 
+        => OnSubmit.InvokeAsync((ReviewerTask.AssessmentId, ReviewerTask.Feedback, ReviewerTask.AreasForImprovements));
+}
