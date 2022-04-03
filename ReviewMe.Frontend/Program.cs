@@ -53,6 +53,9 @@ namespace ReviewMe.Frontend
                 throw new NullReferenceException(nameof(httpClient));
             }
 
+            if(builder.Configuration.GetValue<bool>("authForTesting"))
+                token = builder.Configuration.GetValue<string>("jwtToken");
+
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             // ReSharper restore PossibleNullReferenceException
