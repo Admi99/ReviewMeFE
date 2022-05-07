@@ -308,11 +308,31 @@ namespace ReviewMe.Frontend.Mocks.Services
             return Task.CompletedTask;
         }
 
+        private static readonly List<ReviewerFeedback> ReviewerFeedbacks = new()
+        {
+            new ReviewerFeedback
+            {
+                Feedback = "Dobra komunikce",
+                AreasForImprovements = "Nic",
+                Name = "Josef Cajka",
+                AssessmentReviewerState = AssessmentReviewerState.Reviewed,
+            },
+            new ReviewerFeedback
+            {
+                Feedback = "Spatna komunikace fsajfdosaifjisafjosaijfiosajfiosajfioasjfioasjfiosajfoiasj",
+                AreasForImprovements = "Nic",
+                Name = "Petr Novak",
+                AssessmentReviewerState = AssessmentReviewerState.Reviewed,
+            },
+
+        };
+
+
         public async Task<List<ReviewerFeedback>> GetByEmployeeId(int employeeId)
         {
             await Task.Delay(1000);
 
-            return new List<ReviewerFeedback>();
+            return ReviewerFeedbacks;
         }
 
         Task IAssessmentService.SaveAdditionalFeedback(int employeeId, string feedback)

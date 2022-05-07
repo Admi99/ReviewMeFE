@@ -128,6 +128,36 @@
             </div>
         </div>
     </section>
+    <section class="reviewme-pt-8">
+        <div class="reviewme-grid reviewme-grid-cols-2 2xl:reviewme-grid-cols-3 reviewme-gap-10">
+            <div class="reviewme-col-span-2">
+                <TaskContext Task="ReviewersFeedbackTask" Context="groups" ErrorMessage="Failed to load reviewers">
+                    <Table Headers="TableHeaders" Items="groups">
+                        <TableRow Context="e">
+                            <TableCell Class="reviewme-text-gray-800">
+                                <div class="reviewme-flex reviewme-gap-8 reviewme-items-center">
+                                    <div class="reviewme-h-16 reviewme-w-16 reviewme-rounded-full reviewme-overflow-hidden">
+                                        <EmployeeImage Src="@e.ImageSrc" />
+                                    </div>
+                                    <span>@e.Name</span>
+                                </div>
+                            </TableCell>
+                            <TableCell Class="reviewme-text-gray-800">
+                                <div @onclick="() => ShowWholeFeedback(e.Feedback)" class="reviewme-flex reviewme-gap-8 reviewme-items-center">
+                                    <span class="reviewme-w-64 reviewme-overflow-hidden reviewme-text-ellipsis">@e.Feedback</span>
+                                </div>
+                            </TableCell>
+                            <TableCell Class="reviewme-text-gray-800">
+                                <div class="reviewme-flex reviewme-gap-8 reviewme-items-center">
+                                    <span>@e.AssessmentReviewerState.ToString()</span>
+                                </div>
+                            </TableCell>
+                        </TableRow>
+                    </Table>
+                </TaskContext>
+            </div>
+        </div>
+    </section>
 
     <TaskContext Task="EmployeeTask" Context="employee" ShowContext="false">
         <section class="reviewme-fixed reviewme-right-8 reviewme-bottom-8 reviewme-max-w-sm reviewme-shadow reviewme-rounded-2xl reviewme-bg-white reviewme-overflow-hidden">
@@ -163,9 +193,18 @@
 
     <ModalOpener IsOpen="IsModalVisible">
         <Modal OnCancel="OnCancelModal"
-               OnConfirm="() => ModalAction.Invoke()">
+               OnConfirm="OnCancelModal">
             <ModalTitle>
                 Are you sure you want to @ModalText.ToLower() this assessment?
+            </ModalTitle>
+        </Modal>
+    </ModalOpener>
+
+    <ModalOpener IsOpen="IsInfoModalVisible">
+        <Modal OnCancel="OnCancelModal"
+               OnConfirm="OnCancelModal">
+            <ModalTitle>
+                @InfoModalData
             </ModalTitle>
         </Modal>
     </ModalOpener>
@@ -209,6 +248,15 @@
     private Employee Employee
         => EmployeeTask.UseContext(StateHasChanged);
 
+    private string[] TableHeaders
+        => new[] { "Employee", "Feedback", "State" };
+
+    public void ShowWholeFeedback(string feedback)
+    {
+        IsInfoModalVisible = true;
+        InfoModalData = feedback;
+    }
+
     private List<Reviewer> Reviewers
         => ReviewersTask
             .UseContext(StateHasChanged)
@@ -226,6 +274,10 @@
     private bool IsAssessmentDueDateTouched { get; set; }
 
     private bool IsModalVisible { get; set; }
+
+    private bool IsInfoModalVisible { get; set; }
+
+    private string InfoModalData { get; set; }
 
     private bool IsPerformanceReviewDateValid => Employee.PerformanceReviewDate >= Employee.AssessmentDueDate;
 
@@ -334,6 +386,7 @@
     private void OnCancelModal()
     {
         IsModalVisible = false;
+        IsInfoModalVisible = false;
     }
 
     private void SaveAdditionalFeedback()
